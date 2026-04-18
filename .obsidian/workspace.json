@@ -178,6 +178,7 @@
   },
   "active": "dc8dc2816c0d43fb",
   "lastOpenFiles": [
+    "skills-lock.json",
     "src/components/AdminSettings.tsx",
     "src/components/ProjectEditCard.tsx",
     "src/components/PhaseSummary.tsx",
