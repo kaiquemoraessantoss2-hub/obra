@@ -56,8 +56,8 @@ export default function Auth({ onLogin, onMemberLogin }: AuthProps) {
           options: {
             data: {
               full_name: name,
-              role: 'ADMIN',
-              companyId: `comp_${Date.now()}`,
+              role: email === 'admin@obraflow.com' ? 'SUPERADMIN' : 'ADMIN',
+              companyId: email === 'admin@obraflow.com' ? 'obraflow_master' : `comp_${Date.now()}`,
             }
           }
         });
