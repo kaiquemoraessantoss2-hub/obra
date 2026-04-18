@@ -1,10 +1,11 @@
 'use client';
 
 import React, { useState } from 'react';
-import { User, Users, Shield, Settings, Key, Plus, X, Check, Eye, EyeOff, AlertCircle, Trash2, Edit, Save } from 'lucide-react';
+import { User, Users, Shield, Settings, Key, Plus, X, Check, Eye, EyeOff, AlertCircle, Trash2, Edit, Save, Database } from 'lucide-react';
 import { User as UserType } from '@/types';
 import { cn } from '@/lib/utils';
 import { getAllUsers, deleteUser } from '@/lib/auth';
+import MigrationTool from './MigrationTool';
 
 interface Props {
   currentUser: UserType;
@@ -73,7 +74,10 @@ export default function AdminSettings({ currentUser, onUpdateUser }: Props) {
         )}
 
       {activeSection === 'settings' && (
-        <SystemSettings />
+        <div className="space-y-6">
+          <SystemSettings />
+          <MigrationTool />
+        </div>
       )}
     </div>
   );

@@ -28,7 +28,7 @@ export default function Auth({ onLogin, onMemberLogin }: AuthProps) {
 
     try {
       if (isLogin) {
-        // ✅ Login com Supabase
+        // ✅ Login Real com Supabase
         const { data, error: authError } = await supabase.auth.signInWithPassword({
           email,
           password,
@@ -49,7 +49,7 @@ export default function Auth({ onLogin, onMemberLogin }: AuthProps) {
           }, false);
         }
       } else {
-        // ✅ Registro com Supabase
+        // ✅ Registro Real com Supabase
         const { data, error: authError } = await supabase.auth.signUp({
           email,
           password,
@@ -68,7 +68,6 @@ export default function Auth({ onLogin, onMemberLogin }: AuthProps) {
         }
 
         if (data.user) {
-          // Se o e-mail precisar de confirmação, avisamos o usuário
           if (data.session === null) {
             setError('Conta criada! Verifique seu e-mail para confirmar o cadastro.');
           } else {
@@ -159,11 +158,6 @@ export default function Auth({ onLogin, onMemberLogin }: AuthProps) {
                 </>
               )}
             </button>
-            {isLogin && (
-              <button type="button" onClick={() => setShowMemberLogin(true)} className="w-full py-3 text-slate-500 text-sm hover:text-white mt-2">
-                Entrar como membro da obra
-              </button>
-            )}
           </form>
         </div>
       </div>
