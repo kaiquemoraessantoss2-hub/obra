@@ -81,8 +81,9 @@ export default function Auth({ onLogin, onMemberLogin }: AuthProps) {
           }
         }
       }
-    } catch (err) {
-      setError('Erro de conexão. Tente novamente.');
+    } catch (err: any) {
+      console.error('Erro de Autenticação:', err);
+      setError(`Erro de conexão: ${err.message || 'Falha na rede'}`);
     } finally {
       setIsLoading(false);
     }
