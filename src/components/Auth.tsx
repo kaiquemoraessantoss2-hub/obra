@@ -158,6 +158,11 @@ export default function Auth({ onLogin, onMemberLogin }: AuthProps) {
                 </>
               )}
             </button>
+            {isLogin && (
+              <button type="button" onClick={() => setShowMemberLogin(true)} className="w-full py-3 text-slate-500 text-sm hover:text-white mt-2">
+                Entrar como membro da obra
+              </button>
+            )}
           </form>
         </div>
       </div>
