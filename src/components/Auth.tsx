@@ -40,12 +40,13 @@ export default function Auth({ onLogin, onMemberLogin }: AuthProps) {
         }
 
         if (data.user) {
+          const isAdminEmail = data.user.email === 'admin@obraflow.com';
           onLogin({
             id: data.user.id,
-            companyId: data.user.user_metadata.companyId || `comp_${data.user.id}`,
+            companyId: isAdminEmail ? 'obraflow_master' : (data.user.user_metadata.companyId || `comp_${data.user.id}`),
             name: data.user.user_metadata.full_name || data.user.email || '',
             email: data.user.email || '',
-            role: data.user.user_metadata.role || 'ADMIN'
+            role: isAdminEmail ? 'SUPERADMIN' : (data.user.user_metadata.role || 'ADMIN')
           }, false);
         }
       } else {
@@ -68,15 +69,16 @@ export default function Auth({ onLogin, onMemberLogin }: AuthProps) {
         }
 
         if (data.user) {
+          const isAdminEmail = data.user.email === 'admin@obraflow.com';
           if (data.session === null) {
             setError('Conta criada! Verifique seu e-mail para confirmar o cadastro.');
           } else {
             onLogin({
               id: data.user.id,
-              companyId: data.user.user_metadata.companyId,
+              companyId: isAdminEmail ? 'obraflow_master' : data.user.user_metadata.companyId,
               name: data.user.user_metadata.full_name,
               email: data.user.email || '',
-              role: 'ADMIN'
+              role: isAdminEmail ? 'SUPERADMIN' : 'ADMIN'
             }, true);
           }
         }
