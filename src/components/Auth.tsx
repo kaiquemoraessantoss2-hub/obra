@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { Building2, Mail, Lock, User as UserIcon, ArrowRight, ShieldCheck, AlertCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { User } from '@/types';
-import { validateUser, getUserByEmail, saveUser, loadUsers } from '@/lib/auth';
+import { supabase } from '@/lib/supabase';
 import LoginPage from '@/components/team/LoginPage';
 
 interface AuthProps {
@@ -26,55 +26,67 @@ export default function Auth({ onLogin, onMemberLogin }: AuthProps) {
     setError('');
     setIsLoading(true);
 
-    await new Promise(resolve => setTimeout(resolve, 500));
-
-    if (isLogin) {
-      const user = validateUser(email, password);
-      if (user) {
-        if (user.isActive === false) {
-          setError('Usuário desativado. Contate o administrador.');
-          setIsLoading(false);
-          return;
-        }
-        onLogin({ id: user.id, companyId: user.companyId, name: user.name, email: user.email, role: user.role }, false);
-      } else {
-        const exists = getUserByEmail(email);
-        if (exists) {
-          if (exists.isActive === false) {
-            setError('Usuário desativado. Contate o administrador.');
-          } else {
-            setError('Senha incorreta');
-          }
-        } else {
-          setError('Usuário não encontrado');
-        }
-      }
-    } else {
-      const exists = getUserByEmail(email);
-      if (exists) {
-        setError('E-mail já cadastrado');
-      } else {
-        const newUserId = `u_${Date.now()}`;
-        const newCompanyId = `comp_${Date.now()}`;
-        const newUser = {
-          id: newUserId,
+    try {
+      if (isLogin) {
+        // ✅ Login com Supabase
+        const { data, error: authError } = await supabase.auth.signInWithPassword({
           email,
           password,
-          name,
-          role: 'ADMIN' as const,
-          companyId: newCompanyId,
-          isActive: true
-        };
-        const saved = saveUser(newUser);
-        if (!saved) {
-          setError('Erro ao criar conta. Tente novamente.');
-          setIsLoading(false);
+        });
+
+        if (authError) {
+          setError(authError.message === 'Invalid login credentials' ? 'E-mail ou senha incorretos' : authError.message);
           return;
         }
-        onLogin({ id: newUserId, companyId: newCompanyId, name, email, role: 'ADMIN' }, true);
+
+        if (data.user) {
+          onLogin({
+            id: data.user.id,
+            companyId: data.user.user_metadata.companyId || `comp_${data.user.id}`,
+            name: data.user.user_metadata.full_name || data.user.email || '',
+            email: data.user.email || '',
+            role: data.user.user_metadata.role || 'ADMIN'
+          }, false);
+        }
+      } else {
+        // ✅ Registro com Supabase
+        const { data, error: authError } = await supabase.auth.signUp({
+          email,
+          password,
+          options: {
+            data: {
+              full_name: name,
+              role: 'ADMIN',
+              companyId: `comp_${Date.now()}`,
+            }
+          }
+        });
+
+        if (authError) {
+          setError(authError.message);
+          return;
+        }
+
+        if (data.user) {
+          // Se o e-mail precisar de confirmação, avisamos o usuário
+          if (data.session === null) {
+            setError('Conta criada! Verifique seu e-mail para confirmar o cadastro.');
+          } else {
+            onLogin({
+              id: data.user.id,
+              companyId: data.user.user_metadata.companyId,
+              name: data.user.user_metadata.full_name,
+              email: data.user.email || '',
+              role: 'ADMIN'
+            }, true);
+          }
+        }
       }
+    } catch (err) {
+      setError('Erro de conexão. Tente novamente.');
+    } finally {
+      setIsLoading(false);
     }
-    setIsLoading(false);
   };
 
   if (showMemberLogin) {
@@ -106,7 +118,7 @@ export default function Auth({ onLogin, onMemberLogin }: AuthProps) {
           {error && (
             <div className="flex items-center gap-2 p-4 mb-6 bg-rose-500/10 border border-rose-500/20 rounded-2xl">
               <AlertCircle className="text-rose-500" size={18} />
-              <p className="text-rose-500 text-sm font-bold">{error}</p>
+              <p className={cn("text-sm font-bold", error.includes('confirmar') ? "text-blue-400" : "text-rose-500")}>{error}</p>
             </div>
           )}
 
@@ -127,9 +139,6 @@ export default function Auth({ onLogin, onMemberLogin }: AuthProps) {
                 <Mail className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-500" size={18} />
                 <input required value={email} onChange={(e) => setEmail(e.target.value)} type="email" className="w-full bg-white/[0.03] border border-white/5 rounded-2xl pl-14 pr-6 py-4 text-white focus:outline-none focus:border-blue-500 transition-all font-bold placeholder-slate-700" placeholder="voce@empresa.com" />
               </div>
-              {isLogin && email === 'admin@obraflow.com' && (
-                <p className="text-[10px] text-blue-500 mt-2 flex items-center gap-1.5 font-black uppercase"><ShieldCheck size={12}/> Administrador SaaS Detectado</p>
-              )}
             </div>
 
             <div className="space-y-2">
